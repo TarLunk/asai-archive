@@ -18,7 +18,7 @@ export class MinioService {
 
   async saveAvatar(buffer: Buffer, newFilename: string, repository: string):Promise<boolean>  {
     try {
-      const image = sharp(buffer); // path to the stored image
+      const image = sharp(buffer); 
       await image
         .resize({ width: 128, height: 128 })
         .toFormat('png', { mozjpeg: true })

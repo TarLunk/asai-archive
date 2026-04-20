@@ -14,10 +14,7 @@ export default class OpenAIService {
       const role = (msg.role === 'user' ? 'user' : 'assistant')
       return { content: msg.content, role }
     })
-    // const optionalMessages: ChatCompletionMessageParam[] = optMessages.map((msg) => {
-    //   const role = (msg.role === 'user' ? 'user' : 'assistant')
-    //   return { content: msg.content, role }
-    // })
+
     const openaiRes = await this.openai.chat.completions.create({
       messages: [
         { role: 'system', content: systemPropt },

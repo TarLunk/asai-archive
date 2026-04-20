@@ -27,11 +27,6 @@ const tgUseCase = tgUseCaseFactory(databaseService, internalService, awsService)
 
 const runningCampaigns = new Set<number>();
 
-/**
- * campaignClients: Map<campaign_id, Map<account_id, AccountWithClient>>
- * привязка подключённых клиентов к каждой рассылке (campaign),
- * максимальное количество клиентов ограничено для каждой рассылки отдельно.
- */
 type AccountWithClient = {
   client: TelegramClient;
   data: MassSend.Account;
@@ -95,7 +90,6 @@ const buildClientOptions = (proxy?: MassSend.Proxy): TelegramClientParams => {
     return options;
   }
 
-  // MTProto-прокси
   if (proxy.is_mtproto) {
     const host = proxy.host;
     const port = proxy.port || 443;
@@ -176,15 +170,10 @@ const createTelegramClientForAccount = async (
     'Connecting Telegram client...'
   );
   async function eventPrint(event: NewMessageEvent) {
-    // console.log(event.message)
-    // const message = event.message;
-
-    // Checks if it's a private message (from user or bot)
     if (event.isPrivate) {
       await tgUseCase.sendMessage(client, event, campaign_id);
     }
   }
-  // adds an event handler for new messages
   client.addEventHandler(eventPrint, new NewMessage({}));
   try {
     await connectWithTimeout(client, 60000);
@@ -274,18 +263,15 @@ const ensureClientsForCampaign = async (campaign: MassSend.Campaign): Promise<Ac
   }
   const map = campaignClients.get(campaignId)!;
 
-  // 1) Детерминируем аккаунты
   const readyAccounts: MassSend.Account[] = (campaign.accounts ?? [])
     .filter((a) => a.status === "ready")
     .sort((a, b) => a.account_id - b.account_id);
 
   if (readyAccounts.length === 0) return [];
 
-  // 2) Берём только "живые" прокси и тоже детерминируем
   const runnableProxies = pickRunnableProxies(campaign.proxies ?? []);
   if (runnableProxies.length === 0) return [];
 
-  // 3) Детерминированный выбор под лимит
   const selected = readyAccounts.slice(0, MAX_CLIENTS_PER_CAMPAIGN);
 
   const accountsWithClients: AccountWithClient[] = [];
@@ -293,12 +279,10 @@ const ensureClientsForCampaign = async (campaign: MassSend.Campaign): Promise<Ac
   for (const account of selected) {
     const desiredProxy = pickProxyForAccount(account.account_id, runnableProxies);
 
-    // На всякий случай (у тебя прокси обязательны)
     if (!desiredProxy) continue;
 
     const existing = map.get(account.account_id);
 
-    // Если клиент уже есть и прокси тот же — переиспользуем
     if (
       existing &&
       existing.proxy?.proxy_id === desiredProxy.proxy_id
@@ -314,7 +298,6 @@ const ensureClientsForCampaign = async (campaign: MassSend.Campaign): Promise<Ac
       continue;
     }
 
-    // Если клиент есть, но прокси изменился — НУЖНО пересоздать клиент.
     if (existing) {
       try {
         await safeDisconnectClient(existing.client);
@@ -364,7 +347,7 @@ const ensureClientsForCampaign = async (campaign: MassSend.Campaign): Promise<Ac
 const checkActiveMassSends = async (): Promise<void> => {
   const massSendRepository = databaseService.massSendRepository;
 
-  // 0) Чистим кампании, у которых статус стал draft или paused
+  // Чистим кампании, у которых статус стал draft или paused
   for (const [campaignId] of campaignClients.entries()) {
     try {
       const campaignRow = await massSendRepository.getCampaignById(campaignId);
@@ -432,7 +415,6 @@ const checkActiveMassSends = async (): Promise<void> => {
           return;
         }
 
-        // Клиенты должны быть для running/finished кампаний
         const accountsWithClients = await ensureClientsForCampaign(campaign);
 
         if (accountsWithClients.length === 0) {
@@ -443,8 +425,6 @@ const checkActiveMassSends = async (): Promise<void> => {
           return;
         }
 
-        // Если нет реципиентов — для running переводим в finished,
-        // но клиенты НЕ трогаем (остаются для входящих).
         if (!recipients || recipients.length === 0) {
           server.log.info(
             { campaign_id: id },
@@ -470,8 +450,6 @@ const checkActiveMassSends = async (): Promise<void> => {
           }
           return;
         }
-
-        // Рассылка только в режиме running.
         if (campaign.status === 'running') {
           await massSendUseCase.sendTickForCampaign(
             campaign,
@@ -483,8 +461,6 @@ const checkActiveMassSends = async (): Promise<void> => {
             'Campaign status is finished — clients kept, no send tick executed'
           );
         } else {
-          // Теоретически сюда не должны попадать (paused/draft отфильтрованы),
-          // но оставим лог на всякий случай.
           server.log.info(
             { campaign_id: id, status: campaign.status },
             'Campaign in non-sending state — clients kept'
@@ -501,7 +477,7 @@ const checkActiveMassSends = async (): Promise<void> => {
 
 
 // -----------------------------------------------------------------------------
-// CRON
+// СИСТЕМНОЕ
 // -----------------------------------------------------------------------------
 
 server.register(fastifyCron, {
@@ -516,10 +492,6 @@ server.register(fastifyCron, {
     }
   ]
 });
-
-// -----------------------------------------------------------------------------
-// ХУКИ И ОБРАБОТКА ОШИБОК
-// -----------------------------------------------------------------------------
 
 server.addHook('onRequest', (request, reply, done) => {
   server.log.debug('URL request:', request.url);
@@ -546,9 +518,7 @@ server.setErrorHandler((error: FastifyError, request, reply) => {
   });
 });
 
-// -----------------------------------------------------------------------------
-// ГРЕЙСФУЛ-ШТАТДАУН
-// -----------------------------------------------------------------------------
+
 
 const shutdown = async () => {
   server.log.info('Shutting down — disconnecting clients');
@@ -576,10 +546,6 @@ const shutdown = async () => {
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
-
-// -----------------------------------------------------------------------------
-// START
-// -----------------------------------------------------------------------------
 
 server.listen({ port: 3000, host: '0.0.0.0' }, async (err, address) => {
   if (err) {

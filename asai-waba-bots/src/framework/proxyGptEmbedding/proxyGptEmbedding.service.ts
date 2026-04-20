@@ -12,7 +12,6 @@ export default class ProxyGptEmbedding {
     }
 
     public async generate(texts: string[]): Promise<number[][]> {
-        // do things to turn texts into embeddings with an api_key perhaps
 
         try {
             const response = await axios.post(

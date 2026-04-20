@@ -31,7 +31,6 @@ server.listen({ port: 3000, host: '0.0.0.0' }, async (err, address) => {
     console.error('Ошибка при запуске сервера:', err);
     process.exit(1);
   }
-  // server.cron.startAllJobs();
   console.log(`Сервер запущен по адресу ${address}`);
 
   try {
@@ -40,15 +39,13 @@ server.listen({ port: 3000, host: '0.0.0.0' }, async (err, address) => {
 
     console.log('Webhook set for bot with token:', TELEGRAM_LEADS);
 
-    // Получаем username бота, чтобы фильтровать команды вида /cmd@OtherBot
     const me = await bot.getMe();
     const myUsername = (me.username || '').toLowerCase();
 
-    // Хелпер: вытащить команду и аргументы из message.entities
     function parseCommand(msg: any): null | {
-      base: string;        // 'start' | 'connect' | 'pause' | 'unpaus' | 'unpause'
-      mentionTo?: string;  // username после @ в самой команде, если указан
-      args: string | null; // остальной текст после команды
+      base: string;        
+      mentionTo?: string;  
+      args: string | null; 
     } {
       if (!msg?.text || !Array.isArray(msg.entities)) return null;
 

@@ -3,21 +3,11 @@ import { checkChatData } from "@src/utils";
 import { Message, ParsedAnswer, OpenaiRes, ParsedAction } from "@src/domain/types";
 
 import axios from "axios";
+import TelegramBot from "node-telegram-bot-api";
 const wabaUseCase = (databaseService: IDatabaseService, openaiService: IOpenaiService, mailService: IMailService, fuseService: IFuseService, gptSearchService: IGPTSearchService, gigachatService: IGigachatService, vectorStoreService: IVectorStoreService) => {
   const wabaRepository: IWabaRepository = databaseService.wabaRepository;
   const projectRepository: IProjectRepository = databaseService.projectRepository;
-  // const createChat = async (msg: TelegramBot.Message, bot: TelegramBot, token: string) => {
-  //   const projects = await wabaRepository.getByToken(token, msg.chat.id);
-  //   if (projects.length === 0) throw new Error('Чат не найден')
-  //   if (!projects[0].chat_id) {
-  //     const chats = await wabaRepository.createChat(projects[0].project_id, msg.chat.id);
-  //   }
-  //   if (projects[0].start_messages) {
-  //     projects[0].start_messages.forEach((element: string) => {
-  //       bot.sendMessage(msg.chat.id, element);
-  //     });
-  //   }
-  // }
+
   const checkWebhook = async (msg: TelegramBot.Message, bot: TelegramBot, token: string) => {
 
   }
@@ -129,7 +119,6 @@ const wabaUseCase = (databaseService: IDatabaseService, openaiService: IOpenaiSe
         strict: true,
       }
 
-      //answer = await openaiService.getAnswer(chats[0].gpt_model ?? "gpt-4o", chats[0].messages.reverse(), systemPrompt, text ?? '');
       answer = await openaiService.getJsonAnswer(analyticalSystemPrompt, msg.text ?? '', schema, { model: "gpt-4o-mini", context: chats[0].messages });
       tokens += answer.tokens;
       parsedAnswer = JSON.parse(answer.content);
@@ -165,9 +154,7 @@ const wabaUseCase = (databaseService: IDatabaseService, openaiService: IOpenaiSe
           const res = await axios.get(`https://sheets.googleapis.com/v4/spreadsheets/${sepStr[5]}/values/${productBase.list_name}!A${(productBase.skip_rows ?? 0) + 1}:ZZ?key=${productBase.google_sheets_api_key}`);
           const products: string[][] = res.data.values;
           console.log(products)
-          //console.log('////////////////')
           let founded = false;
-          //console.log("parsedAnswer.query typeof" + typeof parsedAnswer.query)
           const que = value;
           if (productBase.method === 'ai') {
             const sortedProducts = await gptSearchService.findProducts(products, que, productBase.search_scope ?? 5);
@@ -273,7 +260,6 @@ const wabaUseCase = (databaseService: IDatabaseService, openaiService: IOpenaiSe
   }
   return {
     sendMessage,
-    // createChat,
     checkWebhook
   }
 }

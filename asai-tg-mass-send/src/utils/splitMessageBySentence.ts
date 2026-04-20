@@ -12,7 +12,6 @@ export function splitMessageBySentence(text: string, limit: number): string[] {
         chunks.push(currentChunk.trim());
       }
       if (sentence.length > limit) {
-        // Предложение само по себе слишком длинное — режем жёстко
         let start = 0;
         while (start < sentence.length) {
           chunks.push(sentence.slice(start, start + limit));

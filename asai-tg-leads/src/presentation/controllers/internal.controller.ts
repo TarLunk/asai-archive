@@ -10,8 +10,6 @@ const internalControllerCreate = (dependencies: IDependency, bot: TelegramBot) =
   const sendLeadController = async (request: any, reply: FastifyReply) => {
     try {
       const chat_id: number = request.body.chat_id;
-      // const type = request.body.type;
-      // const additionalInfo = request.body.additional_info;
       const { messages } = await sendLead(chat_id);
       for (let i = 0; i < messages.length; i++) {
         const msg = messages[i];

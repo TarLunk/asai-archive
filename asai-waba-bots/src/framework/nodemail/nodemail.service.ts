@@ -7,7 +7,6 @@ export default class NodemailerService {
   transporter: nodemailer.Transporter<any>;
 
   constructor() {
-    //console.log(process.env.SMTP_HOST + Number(process.env.SMTP_PORT) + process.env.SMTP_USER + process.env.SMTP_PASS)
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),

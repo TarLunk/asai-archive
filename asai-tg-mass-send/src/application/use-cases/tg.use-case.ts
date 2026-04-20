@@ -18,7 +18,6 @@ const tgUseCase = (
 
   const sendMessage = async (client: TelegramClient, event: NewMessageEvent, campaignId: number): Promise<CreateMessageResponse> => {
     try {
-      // 1) Контекст
       const msg = event.message
       console.log(event.chatId)
       console.log(event.chatId.toString())
@@ -26,7 +25,6 @@ const tgUseCase = (
       const chatId = event.chatId;
       let chats = await tgRepository.getContextById(chatId.toString(), campaignId);
       const sender = await msg.getSender();
-      //  const  sender = await event.get_input_sender()
 
       if (!sender) {
         throw new Error("Генерация ответа отклонена. Ошибка получения данных отправителя");
@@ -40,11 +38,6 @@ const tgUseCase = (
           const newChat = await tgRepository.createChat(campaign.project_id, chatId.toString());
           await tgRepository.createMessage(newChat[0].chat_id, "assistant", campaign.recipients[0].delivery_logs[0].message_text, { botMessageId: campaign.recipients[0].delivery_logs[0].external_user_id })
           chats = await tgRepository.getContextById(chatId.toString(), campaignId);
-          // await tgRepository.createCampaignEventsFromCampaigns(
-          //   bots[0].project_id,
-          //   "telegram",
-          //   chats[0].chat_id
-          // );
         } else {
           throw new Error("Создание чата отклонено, т.к. интеграция неактивна");
         }

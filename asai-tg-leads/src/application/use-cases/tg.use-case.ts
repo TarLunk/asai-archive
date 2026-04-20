@@ -99,40 +99,9 @@ const tgUseCase = (databaseService: IDatabaseService) => {
       }
     }
   }
-  const startSettings = async (msg: TelegramBot.Message, bot: TelegramBot, mention: string) => {
-    // const projects = await tgRepository.getByUserId(msg.from.id);
-    // if (projects.length === 0) throw new Error('Чат не найден');
-    // const keyboard = projects[0].keyboard;
 
-    // if (!projects[0].chat_id) {
-    //   const chats = await tgRepository.createChat(projects[0].project_id, msg.chat.id, JSON.stringify(keyboard));
-    //   await tgRepository.createCampaignEventsFromCampaigns(projects[0].project_id, "telegram", chats[0].chat_id);
-    // }
-    // const inlineKeyboard: KeyboardButton[][] = [];
-    // if (keyboard && Array.isArray(keyboard) && keyboard.length > 0) {
-    //   keyboard.map((btn) => {
-    //     if (inlineKeyboard.length == 0 || Array.isArray(inlineKeyboard.at(-1)) && inlineKeyboard.at(-1).length >= 2) {
-    //       inlineKeyboard.push([{ text: btn.button }])
-    //     } else {
-    //       inlineKeyboard.at(-1).push({ text: btn.button })
-    //     }
-    //   })
-    // }
-    // if (projects[0].start_messages) {
-    //   projects[0].start_messages.forEach((element: string) => {
-    //     bot.sendMessage(msg.chat.id, element, {
-    //       parse_mode: "Markdown",
-    //       reply_markup: {
-    //         keyboard: inlineKeyboard,
-    //         resize_keyboard: true
-    //       }
-    //     });
-    //   });
-    // }
-  }
 
   return {
-    startSettings,
     startCommand,
     connectChannel,
     pauseChannel,

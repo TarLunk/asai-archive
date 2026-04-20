@@ -16,11 +16,6 @@ const internalUseCase = (databaseService: IDatabaseService) => {
             const channel = telegram[i];
             if (!channel.is_active) continue;
             let messageText = '*Требуется внимание менеджера!*\n\n';
-            // if (additionalInfo === 'askHuman') {
-            //     messageText += `Причина: просьба пользователя\n`;
-            // } else if (additionalInfo === 'negative') {
-            //     messageText += `Причина: обнаружен негатив в чате\n`;
-            // }
             if (chats[0].source === 'telegram') {
                 const first = escMd(chats[0].associated_first_name ?? '');
                 const last = escMd(chats[0].associated_last_name ?? '');
@@ -34,7 +29,6 @@ const internalUseCase = (databaseService: IDatabaseService) => {
             messageText += `\n[Ссылка на чат](https://app.${SITE_DOMAIN}/chats/${chatId})`;
             messages.push({ chatId: channel.telegram_chat_id, text: messageText })
         }
-        // console.log(messages)
         return { messages }
     }
     return {

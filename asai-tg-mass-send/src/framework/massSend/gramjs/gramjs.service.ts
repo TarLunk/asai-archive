@@ -39,9 +39,6 @@ export default class GramJsService {
       const text = options?.message ?? campaign.message_template ?? '';
 
       const sendedMessage = await client.sendMessage(recipient.address, { message: text });
-      // const sendedMessage: Api.Updates = await client.invoke(
-      //   new Api.messages.SendMessage({})
-      // )
 
       const now = new Date();
       const interval =
@@ -90,7 +87,6 @@ export default class GramJsService {
         };
       }
 
-      // Floodwait (лучше смотреть в rpcErrorMessage)
       const floodSource = rpcErrorMessage || message;
       if (lower.includes("flood") || lower.includes("flood_wait")) {
         const seconds = this.extractFloodwaitSeconds(floodSource);
@@ -109,7 +105,6 @@ export default class GramJsService {
         };
       }
 
-      // Бан/сессия отозвана (RpcError часто даёт это в errorMessage)
       const authSource = (rpcErrorMessage || message).toLowerCase();
       if (
         authSource.includes("auth_key_unregistered") ||
@@ -157,10 +152,6 @@ export default class GramJsService {
     }
   }
 
-  /**
-   * Отключает переданный клиент (без хранения).
-   * Вызывается, если нужно завершить сессию конкретного MassSend.AccountWithClient.
-   */
   public async dropSession(accountWithClient: MassSend.AccountWithClient): Promise<void> {
     const client = accountWithClient.client;
     if (!client) return;
@@ -172,9 +163,6 @@ export default class GramJsService {
     }
   }
 
-  /**
-   * Отключает множество клиентов.
-   */
   public async dropAllSessions(accounts: MassSend.AccountWithClient[]): Promise<void> {
     for (const awc of accounts) {
       try {
@@ -197,12 +185,5 @@ export default class GramJsService {
     }
     return 0;
   }
-  // public async safeDisconnectClient(client: TelegramClient):Promise<void>{
-  // try {
-  //   await client.disconnect();
-  // } catch {}
-  // try {
-  //   await (client as any).destroy?.();
-  // } catch {}
-  // };
+
 }
